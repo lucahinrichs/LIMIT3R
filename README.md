@@ -48,11 +48,15 @@ LIMIT3R/
 └── Limit3r.jucer                  # Projucer configuration file
 ```
 
+`Builds/` and `JuceLibraryCode/` are not part of the repository, Projucer generates them on export.
+
 ---
 
 ## Building the Plugin
 
 > **Note:** The plugin is not in working condition yet. It currently only splits the signal into bands and delays it, there is no limiting yet. A first testable version is planned within the next few days.
+
+**Requirements:** [JUCE](https://juce.com) and Xcode. The module paths in the `.jucer` file point to the author's machine, so set your own JUCE path in Projucer when prompted.
 
 1. Clone the repository:
    ```bash
