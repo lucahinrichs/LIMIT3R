@@ -32,12 +32,14 @@ private:
     juce::Label lowLabel, midLabel, highLabel;
     juce::Slider makeupSlider;
     juce::Label makeupLabel;
+    juce::Slider driveSlider;
+    juce::Label driveLabel;
     
     // Attachments connect a slider to a parameter of th APVTS
     // The are declared AFTER the sliders: members are destroyed in reverse order
     // => Attachments disappear first and never pint to a dead slider
     using Attachment = juce::AudioProcessorValueTreeState::SliderAttachment;
-    std::unique_ptr<Attachment> lowAttachment, midAttachment, highAttachment, makeupAttachment;
+    std::unique_ptr<Attachment> lowAttachment, midAttachment, highAttachment, makeupAttachment, driveAttachment;
     
     // Called by the timer about 30 times per second
     void timerCallback() override;

@@ -136,6 +136,7 @@ private:
     std::atomic<float>* midParam = nullptr;
     std::atomic<float>* highParam = nullptr;
     std::atomic<float>* makeupParam = nullptr;
+    std::atomic<float>* driveParam = nullptr;
     
     // Builds the list of parameters (static because it's called while the object is still being contructed)
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();

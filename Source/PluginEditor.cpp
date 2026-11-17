@@ -28,7 +28,7 @@ Limit3rAudioProcessorEditor::Limit3rAudioProcessorEditor (Limit3rAudioProcessor&
     : AudioProcessorEditor (&p), audioProcessor (p)
 {
     // Styling the three sliders vertical faders with value box below
-    for (auto* slider : { &lowSlider, &midSlider, &highSlider, &makeupSlider })
+    for (auto* slider : { &lowSlider, &midSlider, &highSlider, &makeupSlider, &driveSlider })
     {
         slider->setColour(juce::Slider::thumbColourId, accentOrange);                   // fader cap
         slider->setColour(juce::Slider::trackColourId, accentOrange);                   // filled part of the track
@@ -45,8 +45,10 @@ Limit3rAudioProcessorEditor::Limit3rAudioProcessorEditor (Limit3rAudioProcessor&
     lowLabel.setText("Low", juce::dontSendNotification);
     midLabel.setText("Mid", juce::dontSendNotification);
     highLabel.setText("High", juce::dontSendNotification);
+    makeupLabel.setText("Makeup", juce::dontSendNotification);
+    driveLabel.setText("Drive", juce::dontSendNotification);
 
-    for (auto* label : { &lowLabel, &midLabel, &highLabel, &makeupLabel })
+    for (auto* label : { &lowLabel, &midLabel, &highLabel, &makeupLabel, &driveLabel })
     {
         label->setColour(juce::Label::textColourId, juce::Colours::white);
 
@@ -59,6 +61,7 @@ Limit3rAudioProcessorEditor::Limit3rAudioProcessorEditor (Limit3rAudioProcessor&
     midAttachment = std::make_unique<Attachment>(audioProcessor.apvts, "mid", midSlider);
     highAttachment = std::make_unique<Attachment>(audioProcessor.apvts, "high", highSlider);
     makeupAttachment = std::make_unique<Attachment>(audioProcessor.apvts, "makeup", makeupSlider);
+    driveAttachment = std::make_unique<Attachment>(audioProcessor.apvts, "drive", driveSlider);
 
     // Set AFTER the attachments: they install their own text functions on the sliders
     for (auto* slider : { &lowSlider, &midSlider, &highSlider })
@@ -94,9 +97,25 @@ Limit3rAudioProcessorEditor::Limit3rAudioProcessorEditor (Limit3rAudioProcessor&
     };
 
     makeupSlider.updateText();
+    
+    // Drive fader: yellow to set it apart, value shown in dB
+    driveSlider.setColour(juce::Slider::thumbColourId, juce::Colour(0xffffc83d));
+    driveSlider.setColour(juce::Slider::trackColourId, juce::Colour(0xffffc83d));
 
+    driveSlider.textFromValueFunction = [](double value)
+    {
+        return juce::String(value, 1) + " dB";
+    };
+    
+    driveSlider.valueFromTextFunction = [](const juce::String& text)
+    {
+        return text.getDoubleValue();
+    };
+    
+    driveSlider.updateText();
+    
     startTimerHz(30);
-    setSize (600, 360);
+    setSize (690, 360);
 }
 
 Limit3rAudioProcessorEditor::~Limit3rAudioProcessorEditor()
@@ -164,16 +183,21 @@ void Limit3rAudioProcessorEditor::timerCallback()
 
 void Limit3rAudioProcessorEditor::resized()
 {
-    auto area = getLocalBounds().reduced(margin, 0);                    // side margins only
-    area.removeFromTop(headerTop + headerHeight + headerGap);           // space for the title area and a small gap
+    auto area = getLocalBounds().reduced(margin, 0);                            // side margins only
+    area.removeFromTop(headerTop + headerHeight + headerGap);                   // space for the title area and a small gap
     area.removeFromBottom(margin);
-
+    
+    // Drive fader at the far left (input side)
+    auto driveColumn = area.removeFromLeft(90).reduced(10, 0);                  // drive fader far left
+    driveLabel.setBounds(driveColumn.removeFromTop(24));
+    driveSlider.setBounds(driveColumn);
+    
     // Reserved space on the right for future controls
     auto reserved = area.removeFromRight(160);                                  // right part of the window
     auto makeupColumn = reserved.removeFromRight(90).reduced(10, 0);            // makeup fader at the far right
     makeupLabel.setBounds(makeupColumn.removeFromTop(24));
     makeupSlider.setBounds(makeupColumn);
-
+    
     const int columnWidth = area.getWidth() / 3;
 
     const std::array<juce::Label*, 3> labels { &lowLabel, &midLabel, &highLabel };

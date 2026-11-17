@@ -28,6 +28,7 @@ Limit3rAudioProcessor::Limit3rAudioProcessor()
     midParam = apvts.getRawParameterValue("mid");
     highParam = apvts.getRawParameterValue("high");
     makeupParam = apvts.getRawParameterValue("makeup");
+    driveParam = apvts.getRawParameterValue("drive");
 }
 
 Limit3rAudioProcessor::~Limit3rAudioProcessor()
@@ -107,7 +108,11 @@ juce::AudioProcessorValueTreeState::ParameterLayout Limit3rAudioProcessor::creat
     
     // Output gain in dB (0 dB = original makeup)
     layout.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID {"makeup", 1}, "Makeup",
-               juce::NormalisableRange<float>(-24.0f, 12.0f, 0.1f), 0.0f));
+                                                           juce::NormalisableRange<float>(-24.0f, 12.0f, 0.1f), 0.0f));
+    
+    // Input gain in dB before the limiter (0 dB = unchanged)
+    layout.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID {"drive", 1}, "Drive",
+                                                          juce::NormalisableRange<float>(0.0f, 24.0f, 0.1f), 0.0f));
     
     return layout;
 }
@@ -202,6 +207,9 @@ void Limit3rAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce
     // Output gain: original makeup factor times the extra gain from the fader (dB -> linear)
     const float totalMakeup = makeupGain * juce::Decibels::decibelsToGain(makeupParam->load());
     
+    // Input gain before the limiter (dB -> linear | read once per block)
+    const float driveGain = juce::Decibels::decibelsToGain(driveParam->load());
+    
     // Meter values of this block, written to the atomics at the end
     float peakLow = 0.0f, peakMid = 0.0f, peakHigh = 0.0f;
     float minGainLow = 1.0f, minGainMid = 1.0f, minGainHigh = 1.0f;
@@ -212,7 +220,7 @@ void Limit3rAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce
         
         for (int i = 0; i < buffer.getNumSamples(); ++i)
         {
-            const float input = channelData[i]; // current input sample
+            const float input = channelData[i] * driveGain;     // current input sample
             const float d = delayLine[channel].process(input);
             
             // Level detectors: rectify the undelayed input, then smooth it
@@ -293,8 +301,7 @@ void Limit3rAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 
 void Limit3rAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
-    // You should use this method to restore your parameters from this memory block,
-    // whose contents will have been created by the getStateInformation() call.
+    // Restore parameters from the host's saved data (only if it is valid XML from this plugin)
     const std::unique_ptr<juce::XmlElement> xml(getXmlFromBinary(data, sizeInBytes));
 
     if (xml != nullptr && xml->hasTagName(apvts.state.getType()))
