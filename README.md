@@ -6,8 +6,9 @@ A custom C++ / JUCE audio effect plugin implementing a lookahead limiter with th
 
 ---
 
-<img width="594" height="350" alt="LIMIT3R_GUI_1 0" src="https://github.com/user-attachments/assets/ea374d07-69ea-4731-b039-a5e9411d8ec2" />
+<img width="594" height="350" alt="LIMIT3R plugin interface with three band faders, level meters and a makeup fader" src="https://github.com/user-attachments/assets/ea374d07-69ea-4731-b039-a5e9411d8ec2" />
 
+---
 
 ## Key Features
 
@@ -16,6 +17,7 @@ A custom C++ / JUCE audio effect plugin implementing a lookahead limiter with th
 * **Per-Band Gain Stage:** Own envelope smoothing and gain computation for each band.
 * **Makeup Gain and Noise Gate:** Fixed makeup plus an output fader for level-matched A/B comparison, and a gate for near-silent signals.
 * **Parameters:** One limiting fader per band and a makeup fader via `AudioProcessorValueTreeState`.
+* **State Saving:** Fader positions are stored with the DAW project and restored on load.
 * **Custom GUI:** Gradient background, faders, level meters and gain reduction bars.
 * **Sample-Rate Independent:** Times and frequencies are converted to the current sample rate in `prepareToPlay()`.
 
@@ -63,7 +65,7 @@ LIMIT3R/
 
 ## Building the Plugin
 
-> **Note:** The plugin builds and processes audio, but it is still a work in progress. Parameters are not saved with DAW projects yet.
+> **Note:** The plugin builds and processes audio, but it is still a work in progress.
 
 **Requirements:** [JUCE](https://juce.com) and Xcode. The module paths in the `.jucer` file point to the author's machine, so set your own JUCE path in Projucer when prompted.
 
@@ -86,7 +88,7 @@ LIMIT3R/
 - [x] Noise gate for very quiet signals
 - [x] Parameters (`AudioProcessorValueTreeState`) for the per-band limiter amount
 - [x] GUI with faders, level meters and gain reduction bars
-- [ ] Save and restore parameters with the DAW project
+- [x] Save and restore parameters with the DAW project
 - [ ] Parameter smoothing
 - [ ] Adjustable crossover frequencies
 - [ ] Selectable detector modes (full-band or per band)
